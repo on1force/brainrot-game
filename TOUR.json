@@ -1,1 +1,1 @@
-{"tour": 1, "steps": [{"screenshot": "1-title.jpg"}, {"screenshot": "2-base.jpg", "keys": ["Return"], "wait_ms": 1500}, {"screenshot": "3-lava.jpg", "keys": ["Return"], "wait_ms": 3000}, {"screenshot": "4-index.jpg", "keys": ["Return", "B"], "wait_ms": 1000}]}
+{"tour": 1, "steps": [{"screenshot": "1-cover.jpg", "keys": ["Return"], "wait_ms": 3000}, {"screenshot": "2-lava.jpg", "keys": ["Return"], "wait_ms": 3000}, {"screenshot": "3-index.jpg", "keys": ["Return", "B"], "wait_ms": 1000}]}

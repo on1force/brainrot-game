@@ -6,7 +6,7 @@
 
 A 3D Roblox brainrot game, built for make.fun's "Make the best AI Roblox brainrot game" bounty (roblox-brainrot-01).
 
-![title](screenshots/1-title.jpg)
+![cover](screenshots/1-cover.jpg)
 
 ## The loop
 
