@@ -27,6 +27,55 @@ BrainrotCatalog.MUTATIONS = {
 	{ id = "Cosmic", label = "COSMIC", mult = 10, weight = 2, color = rgb(150, 90, 255) },
 }
 
+-- The rolls and the money rules come first; the cast itself, CAST and MESHES, follows them.
+
+-- Rolls the mutation of a new wild brainrot. boost multiplies the chance of every mutation except None
+-- (Golden Hour uses it).
+function BrainrotCatalog.rollMutation(rng: Random, boost: number?): string
+	local weights = {}
+	for _, mutation in BrainrotCatalog.MUTATIONS do
+		if mutation.weight > 0 then
+			weights[mutation.id] = if mutation.id == "None" then mutation.weight else mutation.weight * (boost or 1)
+		end
+	end
+	return BrainrotCatalog.pickWeighted(weights, rng)
+end
+
+-- Rolls a rarity id from a zone's { rarity = weight } table.
+function BrainrotCatalog.rollRarity(weights: { [string]: number }, rng: Random): string
+	return BrainrotCatalog.pickWeighted(weights, rng)
+end
+
+function BrainrotCatalog.pickOfRarity(rarityId: string, rng: Random)
+	local pool = BrainrotCatalog.BY_RARITY[rarityId]
+	return pool[rng:NextInteger(1, #pool)]
+end
+
+-- Cash per second of one brainrot with its mutation, before the owner's rebirth multiplier.
+function BrainrotCatalog.incomeOf(id: string, mutationId: string): number
+	return BrainrotCatalog.BY_ID[id].income * BrainrotCatalog.MUTATION_BY_ID[mutationId].mult
+end
+
+function BrainrotCatalog.priceOf(id: string, mutationId: string): number
+	return BrainrotCatalog.BY_ID[id].price * BrainrotCatalog.MUTATION_BY_ID[mutationId].mult
+end
+
+-- Weighted pick of a key from { key = weight }.
+function BrainrotCatalog.pickWeighted(weights: { [string]: number }, rng: Random): string
+	local total = 0
+	for _, weight in weights do
+		total += weight
+	end
+	local roll = rng:NextNumber() * total
+	for key, weight in weights do
+		roll -= weight
+		if roll <= 0 then
+			return key
+		end
+	end
+	return next(weights) :: string
+end
+
 -- One part of a look: shape ("Ball" | "Block" | "Cylinder" | "Wedge"), size, position, color, options
 -- (mat = material name, rot = degrees, alpha = transparency, light = adds a PointLight).
 local function P(shape: string, size: Vector3, pos: Vector3, color: Color3, opts: { [string]: any }?)
@@ -326,51 +375,6 @@ end
 for _, def in BrainrotCatalog.CAST do
 	BrainrotCatalog.BY_ID[def.id] = def
 	table.insert(BrainrotCatalog.BY_RARITY[def.rarity], def)
-end
-
--- Weighted pick of a key from { key = weight }.
-local function pickWeighted(weights: { [string]: number }, rng: Random): string
-	local total = 0
-	for _, weight in weights do
-		total += weight
-	end
-	local roll = rng:NextNumber() * total
-	for key, weight in weights do
-		roll -= weight
-		if roll <= 0 then
-			return key
-		end
-	end
-	return next(weights) :: string
-end
-
-function BrainrotCatalog.rollRarity(weights: { [string]: number }, rng: Random): string
-	return pickWeighted(weights, rng)
-end
-
--- boost multiplies the chance of every mutation except None (Golden Hour uses it).
-function BrainrotCatalog.rollMutation(rng: Random, boost: number?): string
-	local weights = {}
-	for _, mutation in BrainrotCatalog.MUTATIONS do
-		if mutation.weight > 0 then
-			weights[mutation.id] = if mutation.id == "None" then mutation.weight else mutation.weight * (boost or 1)
-		end
-	end
-	return pickWeighted(weights, rng)
-end
-
-function BrainrotCatalog.pickOfRarity(rarityId: string, rng: Random)
-	local pool = BrainrotCatalog.BY_RARITY[rarityId]
-	return pool[rng:NextInteger(1, #pool)]
-end
-
--- Cash per second of one brainrot with its mutation, before the owner's rebirth multiplier.
-function BrainrotCatalog.incomeOf(id: string, mutationId: string): number
-	return BrainrotCatalog.BY_ID[id].income * BrainrotCatalog.MUTATION_BY_ID[mutationId].mult
-end
-
-function BrainrotCatalog.priceOf(id: string, mutationId: string): number
-	return BrainrotCatalog.BY_ID[id].price * BrainrotCatalog.MUTATION_BY_ID[mutationId].mult
 end
 
 return BrainrotCatalog

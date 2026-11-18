@@ -3,11 +3,11 @@
 
 local RunService = game:GetService("RunService")
 
-local Shared = game.ReplicatedStorage.Shared
+local Shared = game.ReplicatedStorage -- the shared modules sit right in it
 local BrainrotCatalog = require(Shared.BrainrotCatalog)
 local BrainrotModel = require(Shared.BrainrotModel)
 local GameConfig = require(Shared.GameConfig)
-local WorldBuilder = require(script.Parent.WorldBuilder)
+local ArenaBuilder = require(script.Parent.ArenaBuilder)
 
 local WildSpawner = {}
 
@@ -30,7 +30,7 @@ local function randomSpot(zone): Vector3
 	local halfWidth = GameConfig.FIELD_WIDTH / 2 - 10
 	for _ = 1, 12 do
 		local spot = Vector3.new(rng:NextNumber(-halfWidth, halfWidth), 0, rng:NextNumber(zone.from + 8, zone.to - 8))
-		if not WorldBuilder.isInSafeDome(spot) and not inShowcaseArea(spot) then
+		if not ArenaBuilder.isInSafeDome(spot) and not inShowcaseArea(spot) then
 			return spot
 		end
 	end

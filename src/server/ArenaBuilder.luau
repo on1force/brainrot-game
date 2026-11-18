@@ -3,10 +3,10 @@
 
 local Lighting = game:GetService("Lighting")
 
-local BrainrotModel = require(game.ReplicatedStorage.Shared.BrainrotModel)
-local GameConfig = require(game.ReplicatedStorage.Shared.GameConfig)
+local BrainrotModel = require(game.ReplicatedStorage.BrainrotModel)
+local GameConfig = require(game.ReplicatedStorage.GameConfig)
 
-local WorldBuilder = {}
+local ArenaBuilder = {}
 
 local FONT = Enum.Font.FredokaOne
 local UP = CFrame.Angles(0, 0, math.rad(90))
@@ -18,6 +18,32 @@ local PLOT_COLORS = {
 }
 
 local worldFolder: Folder
+
+-- The build steps, each defined further down in the order buildWorld runs them.
+local buildLighting, buildGround, buildZoneGates, buildVolcano, buildSafeDomes, buildTitleBoard, buildPlayerBase
+
+-- Builds the whole arena once and keeps what the other services need: the player bases (plots) and
+-- the safe domes.
+function ArenaBuilder.buildWorld()
+	worldFolder = Instance.new("Folder")
+	worldFolder.Name = "World"
+	worldFolder.Parent = workspace
+
+	buildLighting()
+	buildGround()
+	buildZoneGates()
+	buildVolcano()
+	local domes = buildSafeDomes()
+	buildTitleBoard()
+	local plots = {}
+	for index = 1, GameConfig.PLOT_COUNT do
+		plots[index] = buildPlayerBase(index)
+		task.wait()
+	end
+	ArenaBuilder.plots = plots
+	ArenaBuilder.domes = domes
+	return ArenaBuilder
+end
 
 local function part(props: { [string]: any }, parent: Instance?): Part
 	local p = Instance.new("Part")
@@ -67,7 +93,7 @@ end
 
 -- A one-line floating tag `height` studs straight above a part, hung from an unrotated attachment
 -- (a billboard's offset turns with a rotated part, so tags on upright cylinders would slide sideways).
-function WorldBuilder.tagAbove(target: BasePart, height: number, width: number, text: string, color: Color3, maxDistance: number?)
+function ArenaBuilder.tagAbove(target: BasePart, height: number, width: number, text: string, color: Color3, maxDistance: number?)
 	local anchor = Instance.new("Attachment")
 	anchor.Name = "TagAnchor"
 	anchor.Parent = target
@@ -92,7 +118,7 @@ function WorldBuilder.tagAbove(target: BasePart, height: number, width: number, 
 	return tag, label
 end
 
-local function buildLighting()
+function buildLighting()
 	Lighting.ClockTime = 15.4
 	Lighting.Brightness = 3
 	Lighting.Ambient = Color3.fromRGB(70, 60, 70)
@@ -140,7 +166,7 @@ end
 
 -- The ground is real terrain: a grassy safe zone, one material per field zone, lava trenches along the
 -- field, and rolling hills that frame the map and darken to volcanic rock toward the volcano.
-local function buildGround()
+function buildGround()
 	local terrain = workspace.Terrain
 	terrain:Clear()
 	pcall(function()
@@ -196,7 +222,7 @@ local function buildGround()
 	task.wait()
 end
 
-local function buildZoneGates()
+function buildZoneGates()
 	local halfWidth = GameConfig.FIELD_WIDTH / 2
 	for index, zone in GameConfig.ZONES do
 		if index == 1 then
@@ -234,7 +260,7 @@ local VOLCANO_BASE_RADIUS = 84
 local VOLCANO_TOP_RADIUS = 20
 local VOLCANO_HEIGHT = 100
 
-local function buildVolcano()
+function buildVolcano()
 	local terrain = workspace.Terrain
 	local layers = VOLCANO_HEIGHT / 4
 	for i = 0, layers - 1 do
@@ -285,7 +311,7 @@ local function buildVolcano()
 	clouds.Parent = workspace.Terrain
 end
 
-local function buildSafeDomes(): { { position: Vector3, radius: number } }
+function buildSafeDomes(): { { position: Vector3, radius: number } }
 	local domes = {}
 	local radius = GameConfig.SAFE_DOME_RADIUS
 	for index, zone in GameConfig.ZONES do
@@ -298,7 +324,7 @@ local function buildSafeDomes(): { { position: Vector3, radius: number } }
 			local ring = part({ Name = "DomeRing", Size = Vector3.new(0.4, radius * 2 + 1, radius * 2 + 1),
 				CFrame = CFrame.new(center + Vector3.new(0, 0.1, 0)) * UP, Shape = Enum.PartType.Cylinder,
 				Color = Color3.fromRGB(80, 255, 140), Material = Enum.Material.Neon, CanCollide = false })
-			WorldBuilder.tagAbove(ring, radius + 3, 18, "SAFE DOME", Color3.fromRGB(150, 255, 180), 220)
+			ArenaBuilder.tagAbove(ring, radius + 3, 18, "SAFE DOME", Color3.fromRGB(150, 255, 180), 220)
 			table.insert(domes, { position = center, radius = radius })
 		end
 	end
@@ -317,7 +343,7 @@ local function buildTree(position: Vector3, height: number)
 	end
 end
 
-local function buildTitleBoard()
+function buildTitleBoard()
 	local board = part({ Name = "TitleBoard", Size = Vector3.new(130, 34, 2), Position = Vector3.new(0, 34, -116),
 		Color = Color3.fromRGB(40, 20, 60) })
 	surfaceText(board, Enum.NormalId.Back, {
@@ -329,7 +355,7 @@ local function buildTitleBoard()
 	end
 end
 
-local function buildPlot(index: number)
+function buildPlayerBase(index: number)
 	local size = GameConfig.PLOT_SIZE
 	local half = size / 2
 	local color = PLOT_COLORS[index]
@@ -381,7 +407,7 @@ local function buildPlot(index: number)
 	local lockButton = part({ Name = "LockButton", Size = Vector3.new(1, 6, 6),
 		CFrame = CFrame.new(center + Vector3.new(18, 1.5, half - 9)) * UP, Shape = Enum.PartType.Cylinder,
 		Color = Color3.fromRGB(255, 60, 60), Material = Enum.Material.Neon }, folder)
-	local _, lockText = WorldBuilder.tagAbove(lockButton, 5, 14, "STEP TO LOCK BASE", Color3.new(1, 1, 1), 120)
+	local _, lockText = ArenaBuilder.tagAbove(lockButton, 5, 14, "STEP TO LOCK BASE", Color3.new(1, 1, 1), 120)
 
 	local walls = {}
 	for _, spec in {
@@ -426,30 +452,8 @@ local function buildPlot(index: number)
 	}
 end
 
--- Builds the map once and returns what the other services need: plots and safe domes.
-function WorldBuilder.build()
-	worldFolder = Instance.new("Folder")
-	worldFolder.Name = "World"
-	worldFolder.Parent = workspace
-
-	buildLighting()
-	buildGround()
-	buildZoneGates()
-	buildVolcano()
-	local domes = buildSafeDomes()
-	buildTitleBoard()
-	local plots = {}
-	for index = 1, GameConfig.PLOT_COUNT do
-		plots[index] = buildPlot(index)
-		task.wait()
-	end
-	WorldBuilder.plots = plots
-	WorldBuilder.domes = domes
-	return WorldBuilder
-end
-
 -- Textured props made for this game with Roblox's AI mesh generator; loaded with the brainrot meshes.
-WorldBuilder.PROPS = {
+ArenaBuilder.PROPS = {
 	PalmTree = { mesh = "rbxassetid://134713643057911", texture = "rbxassetid://139159004236499" },
 	Boulder = { mesh = "rbxassetid://137979105238472", texture = "rbxassetid://136114260408476" },
 	LavaCrystals = { mesh = "rbxassetid://135602396567003", texture = "rbxassetid://76592104740672" },
@@ -480,7 +484,7 @@ local function placeProp(key: string, position: Vector3, height: number, yaw: nu
 end
 
 local function clearOfDomes(position: Vector3, margin: number): boolean
-	for _, dome in WorldBuilder.domes do
+	for _, dome in ArenaBuilder.domes do
 		if (Vector3.new(position.X, 0, position.Z) - dome.position).Magnitude < dome.radius + margin then
 			return false
 		end
@@ -532,7 +536,7 @@ end
 
 -- After the meshes load: scatters palm trees, boulders, mushrooms, flower bushes and lava crystals over
 -- the map and dresses every base. Props whose mesh failed fall back to simple part trees and rocks.
-function WorldBuilder.decorate()
+function ArenaBuilder.decorate()
 	propsFolder = Instance.new("Folder")
 	propsFolder.Name = "Props"
 	local rng = Random.new(11)
@@ -606,14 +610,14 @@ function WorldBuilder.decorate()
 		end
 	end
 
-	for _, plot in WorldBuilder.plots do
+	for _, plot in ArenaBuilder.plots do
 		dressPlot(plot)
 	end
 	propsFolder.Parent = worldFolder
 end
 
-function WorldBuilder.isInSafeDome(position: Vector3): boolean
-	for _, dome in WorldBuilder.domes do
+function ArenaBuilder.isInSafeDome(position: Vector3): boolean
+	for _, dome in ArenaBuilder.domes do
 		local flat = Vector3.new(position.X - dome.position.X, 0, position.Z - dome.position.Z)
 		if flat.Magnitude <= dome.radius then
 			return true
@@ -622,4 +626,4 @@ function WorldBuilder.isInSafeDome(position: Vector3): boolean
 	return false
 end
 
-return WorldBuilder
+return ArenaBuilder

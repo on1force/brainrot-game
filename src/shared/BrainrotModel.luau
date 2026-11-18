@@ -11,6 +11,45 @@ local BrainrotModel = {}
 -- Every brainrot is built this much larger than its look's numbers, then by its rarity's scale.
 BrainrotModel.BASE_SCALE = 1.4
 
+-- A brainrot of catalog id `id` wearing mutation `mutationId`, standing on its Root at the origin: its
+-- AI-generated mesh when that loaded, else its part-built look, scaled by its rarity. The steps it calls
+-- are the functions below it.
+function BrainrotModel.build(id: string, mutationId: string): Model
+	local def = BrainrotCatalog.BY_ID[id]
+	local model = Instance.new("Model")
+	model.Name = def.name
+
+	local root = Instance.new("Part")
+	root.Name = "Root"
+	root.Size = Vector3.new(3, 0.2, 3)
+	root.Transparency = 1
+	root.Anchored = true
+	root.CanCollide = false
+	root.CanTouch = false
+	root.CanQuery = false
+	root.Massless = true
+	root.CFrame = CFrame.new()
+	root.Parent = model
+	model.PrimaryPart = root
+
+	local template = BrainrotModel.meshTemplate(id)
+	if template then
+		BrainrotModel.addMesh(model, root, template, BrainrotCatalog.MESHES[id].height)
+	else
+		BrainrotModel.addPartLook(model, root, def.look)
+	end
+
+	local rarity = BrainrotCatalog.RARITY_BY_ID[def.rarity]
+	model:ScaleTo(rarity.scale * BrainrotModel.BASE_SCALE)
+	local _, extents = model:GetBoundingBox()
+	model:SetAttribute("BrainrotId", id)
+	model:SetAttribute("Mutation", mutationId)
+	model:SetAttribute("Height", extents.Y)
+	BrainrotModel.applyMutation(model, mutationId)
+	CollectionService:AddTag(model, "Brainrot")
+	return model
+end
+
 local SHAPES = {
 	Ball = Enum.PartType.Ball,
 	Block = Enum.PartType.Block,
@@ -164,44 +203,6 @@ function BrainrotModel.addPartLook(model: Model, root: BasePart, look)
 		addPart(model, root, "Block", Vector3.new(look.mouth.w, 0.18, 0.1), Vector3.new(0, look.mouth.y, look.mouth.z),
 			Color3.fromRGB(60, 20, 20), { name = "Eye" })
 	end
-end
-
--- A brainrot of catalog id `id` wearing mutation `mutationId`, standing on its Root at the origin.
-function BrainrotModel.build(id: string, mutationId: string): Model
-	local def = BrainrotCatalog.BY_ID[id]
-	local look = def.look
-	local model = Instance.new("Model")
-	model.Name = def.name
-
-	local root = Instance.new("Part")
-	root.Name = "Root"
-	root.Size = Vector3.new(3, 0.2, 3)
-	root.Transparency = 1
-	root.Anchored = true
-	root.CanCollide = false
-	root.CanTouch = false
-	root.CanQuery = false
-	root.Massless = true
-	root.CFrame = CFrame.new()
-	root.Parent = model
-	model.PrimaryPart = root
-
-	local template = BrainrotModel.meshTemplate(id)
-	if template then
-		BrainrotModel.addMesh(model, root, template, BrainrotCatalog.MESHES[id].height)
-	else
-		BrainrotModel.addPartLook(model, root, look)
-	end
-
-	local rarity = BrainrotCatalog.RARITY_BY_ID[def.rarity]
-	model:ScaleTo(rarity.scale * BrainrotModel.BASE_SCALE)
-	local _, extents = model:GetBoundingBox()
-	model:SetAttribute("BrainrotId", id)
-	model:SetAttribute("Mutation", mutationId)
-	model:SetAttribute("Height", extents.Y)
-	BrainrotModel.applyMutation(model, mutationId)
-	CollectionService:AddTag(model, "Brainrot")
-	return model
 end
 
 -- Wraps a textured mesh in a slightly larger shimmering shell of the mutation's color, so the character

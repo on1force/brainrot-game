@@ -4,10 +4,9 @@
 
 local Players = game:GetService("Players")
 
-local Shared = game.ReplicatedStorage.Shared
+local Shared = game.ReplicatedStorage -- the shared modules sit right in it
 local BrainrotModel = require(Shared.BrainrotModel)
 local GameConfig = require(Shared.GameConfig)
-local Net = require(Shared.Net)
 local CarryAndSteal = require(script.Parent.CarryAndSteal)
 local FurbettoThief = require(script.Parent.FurbettoThief)
 local PlayerState = require(script.Parent.PlayerState)
@@ -18,7 +17,7 @@ local BatService = {}
 BatService.MESH = { mesh = "rbxassetid://122577951089011", texture = "rbxassetid://119378743391413" }
 
 local BAT_LENGTH = 4.5
-local knockbackRemote = Net.event("Knockback")
+local knockbackRemote = GameConfig.remote("Knockback")
 local lastSwing: { [Player]: number } = {}
 local immuneUntil: { [Player]: number } = {}
 

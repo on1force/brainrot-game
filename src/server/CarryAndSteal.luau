@@ -4,7 +4,7 @@
 
 local Players = game:GetService("Players")
 
-local Shared = game.ReplicatedStorage.Shared
+local Shared = game.ReplicatedStorage -- the shared modules sit right in it
 local BrainrotCatalog = require(Shared.BrainrotCatalog)
 local BrainrotModel = require(Shared.BrainrotModel)
 local GameConfig = require(Shared.GameConfig)

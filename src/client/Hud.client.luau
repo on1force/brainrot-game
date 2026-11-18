@@ -8,14 +8,13 @@ local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
 local TweenService = game:GetService("TweenService")
 
-local Shared = game.ReplicatedStorage:WaitForChild("Shared")
+local Shared = game:GetService("ReplicatedStorage") -- the shared modules sit right in it
 local BrainrotCatalog = require(Shared:WaitForChild("BrainrotCatalog"))
 local GameConfig = require(Shared:WaitForChild("GameConfig"))
-local Net = require(Shared:WaitForChild("Net"))
 local UiKit = require(script.Parent:WaitForChild("UiKit"))
 
 local player = Players.LocalPlayer
-local actionRemote = Net.event("Action")
+local actionRemote = GameConfig.remote("Action")
 local C = UiKit.COLORS
 
 local state = nil
@@ -241,9 +240,9 @@ local function applyState(newState)
 	end
 end
 
-Net.event("State").OnClientEvent:Connect(applyState)
-Net.event("Notify").OnClientEvent:Connect(toast)
-Net.event("Fx").OnClientEvent:Connect(function(kind)
+GameConfig.remote("State").OnClientEvent:Connect(applyState)
+GameConfig.remote("Notify").OnClientEvent:Connect(toast)
+GameConfig.remote("Fx").OnClientEvent:Connect(function(kind)
 	if kind == "Income" then
 		moneyLabel.TextColor3 = C.green
 		TweenService:Create(moneyLabel, TweenInfo.new(0.4), { TextColor3 = C.gold }):Play()

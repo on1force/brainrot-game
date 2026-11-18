@@ -3,12 +3,12 @@
 
 local Players = game:GetService("Players")
 
-local Shared = game.ReplicatedStorage.Shared
+local Shared = game.ReplicatedStorage -- the shared modules sit right in it
 local BrainrotCatalog = require(Shared.BrainrotCatalog)
 local BrainrotModel = require(Shared.BrainrotModel)
 local GameConfig = require(Shared.GameConfig)
 local PlayerState = require(script.Parent.PlayerState)
-local WorldBuilder = require(script.Parent.WorldBuilder)
+local ArenaBuilder = require(script.Parent.ArenaBuilder)
 
 local BaseSlots = {}
 
@@ -21,7 +21,7 @@ BaseSlots.onSteal = nil :: ((Player, Player, number) -> ())?
 
 function BaseSlots.plotOf(player: Player)
 	local state = PlayerState.get(player)
-	return state and state.plot and WorldBuilder.plots[state.plot]
+	return state and state.plot and ArenaBuilder.plots[state.plot]
 end
 
 function BaseSlots.ownerOfPlot(index: number): Player?
@@ -63,7 +63,7 @@ end
 
 local function showPad(player: Player, padIndex: number)
 	local state = PlayerState.get(player)
-	local plot = WorldBuilder.plots[state.plot]
+	local plot = ArenaBuilder.plots[state.plot]
 	local old = padModels[plot.index][padIndex]
 	if old then
 		old:Destroy()
@@ -104,12 +104,12 @@ end
 -- Shows which pads are still locked behind rebirths.
 local function showPadLocks(player: Player)
 	local state = PlayerState.get(player)
-	local plot = WorldBuilder.plots[state.plot]
+	local plot = ArenaBuilder.plots[state.plot]
 	local unlocked = GameConfig.padsFor(state.rebirths)
 	for padIndex, pad in plot.pads do
 		local tag = padLocks[plot.index][padIndex]
 		if padIndex > unlocked and not tag then
-			tag = WorldBuilder.tagAbove(pad.part, 3.2, 8, "REBIRTH TO UNLOCK", Color3.fromRGB(255, 180, 255), 70)
+			tag = ArenaBuilder.tagAbove(pad.part, 3.2, 8, "REBIRTH TO UNLOCK", Color3.fromRGB(255, 180, 255), 70)
 			padLocks[plot.index][padIndex] = tag
 		elseif padIndex <= unlocked and tag then
 			(tag.Adornee :: Instance):Destroy()
@@ -269,11 +269,11 @@ function BaseSlots.onPlayerLeaving(player: Player)
 		(tag.Adornee :: Instance):Destroy()
 		padLocks[index][padIndex] = nil
 	end
-	for _, wall in WorldBuilder.plots[index].walls do
+	for _, wall in ArenaBuilder.plots[index].walls do
 		wall.Transparency = 1
 	end
-	WorldBuilder.plots[index].signTitle.Text = "EMPTY BASE"
-	WorldBuilder.plots[index].signIncome.Text = "$0/s"
+	ArenaBuilder.plots[index].signTitle.Text = "EMPTY BASE"
+	ArenaBuilder.plots[index].signIncome.Text = "$0/s"
 	plotOwners[index] = nil
 end
 

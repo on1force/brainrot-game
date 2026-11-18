@@ -5,16 +5,15 @@
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
 
-local Shared = game.ReplicatedStorage.Shared
+local Shared = game.ReplicatedStorage -- the shared modules sit right in it
 local BrainrotCatalog = require(Shared.BrainrotCatalog)
 local GameConfig = require(Shared.GameConfig)
-local Net = require(Shared.Net)
 
 local PlayerState = {}
 
-local stateRemote = Net.event("State")
-local notifyRemote = Net.event("Notify")
-local fxRemote = Net.event("Fx")
+local stateRemote = GameConfig.remote("State")
+local notifyRemote = GameConfig.remote("Notify")
+local fxRemote = GameConfig.remote("Fx")
 
 local states: { [Player]: any } = {}
 local store: DataStore? = nil

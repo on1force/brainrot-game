@@ -8,10 +8,9 @@ local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
 local TweenService = game:GetService("TweenService")
 
-local Shared = game.ReplicatedStorage:WaitForChild("Shared")
+local Shared = game:GetService("ReplicatedStorage") -- the shared modules sit right in it
 local BrainrotCatalog = require(Shared:WaitForChild("BrainrotCatalog"))
 local GameConfig = require(Shared:WaitForChild("GameConfig"))
-local Net = require(Shared:WaitForChild("Net"))
 
 local player = Players.LocalPlayer
 local FONT = Enum.Font.FredokaOne
@@ -200,7 +199,7 @@ for _, instance in workspace:GetDescendants() do
 	filterPrompt(instance)
 end
 
-Net.event("State").OnClientEvent:Connect(function(newState)
+GameConfig.remote("State").OnClientEvent:Connect(function(newState)
 	state = newState
 	if not newState.carrying and beam then
 		updateHomeBeam()
@@ -210,7 +209,7 @@ end)
 -- A bat hit from another player: the server can't push our character (we own its physics), so we launch
 -- ourselves away, tumble with controls off for `stun` seconds, then get back up.
 local stunnedUntil = 0
-Net.event("Knockback").OnClientEvent:Connect(function(direction: Vector3, stun: number)
+GameConfig.remote("Knockback").OnClientEvent:Connect(function(direction: Vector3, stun: number)
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
@@ -232,7 +231,7 @@ Net.event("Knockback").OnClientEvent:Connect(function(direction: Vector3, stun: 
 	end)
 end)
 
-Net.event("Fx").OnClientEvent:Connect(function(kind, data)
+GameConfig.remote("Fx").OnClientEvent:Connect(function(kind, data)
 	if player.PlayerGui:FindFirstChild("TitleScreen") then
 		return -- nothing flashes over the start screen
 	end

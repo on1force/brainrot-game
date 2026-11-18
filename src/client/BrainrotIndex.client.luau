@@ -6,11 +6,10 @@ local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
-local Shared = game.ReplicatedStorage:WaitForChild("Shared")
+local Shared = game:GetService("ReplicatedStorage") -- the shared modules sit right in it
 local BrainrotCatalog = require(Shared:WaitForChild("BrainrotCatalog"))
 local BrainrotModel = require(Shared:WaitForChild("BrainrotModel"))
 local GameConfig = require(Shared:WaitForChild("GameConfig"))
-local Net = require(Shared:WaitForChild("Net"))
 local UiKit = require(script.Parent:WaitForChild("UiKit"))
 
 local player = Players.LocalPlayer
@@ -113,7 +112,7 @@ local function applyDiscovered(discovered: { [string]: boolean })
 end
 applyDiscovered({})
 
-Net.event("State").OnClientEvent:Connect(function(state)
+GameConfig.remote("State").OnClientEvent:Connect(function(state)
 	applyDiscovered(state.discovered or {})
 end)
 

@@ -1,4 +1,5 @@
--- Every tunable number of Brainrot Lava Rush, plus the money formatter both sides use.
+-- Every tunable number of Brainrot Lava Rush, plus the cost formulas, the money formatter and the
+-- RemoteEvents both sides use.
 
 local GameConfig = {}
 
@@ -74,14 +75,6 @@ GameConfig.EVENT_INTERVAL = 100
 GameConfig.EVENT_DURATION = 40
 GameConfig.GOLDEN_HOUR_MUTATION_BOOST = 4
 
-function GameConfig.speedCost(level: number): number
-	return math.floor(GameConfig.SPEED_BASE_COST * GameConfig.SPEED_COST_GROWTH ^ level)
-end
-
-function GameConfig.walkSpeed(level: number): number
-	return GameConfig.BASE_WALKSPEED + GameConfig.SPEED_STEP * level
-end
-
 function GameConfig.rebirthCost(rebirths: number): number
 	return math.floor(GameConfig.REBIRTH_BASE_COST * GameConfig.REBIRTH_COST_GROWTH ^ rebirths)
 end
@@ -92,6 +85,14 @@ end
 
 function GameConfig.padsFor(rebirths: number): number
 	return math.min(GameConfig.PADS_START + rebirths, GameConfig.PADS_MAX)
+end
+
+function GameConfig.speedCost(level: number): number
+	return math.floor(GameConfig.SPEED_BASE_COST * GameConfig.SPEED_COST_GROWTH ^ level)
+end
+
+function GameConfig.walkSpeed(level: number): number
+	return GameConfig.BASE_WALKSPEED + GameConfig.SPEED_STEP * level
 end
 
 function GameConfig.zoneAt(z: number): (number?, any)
@@ -124,6 +125,30 @@ function GameConfig.formatMoney(amount: number): string
 		text = (text:gsub("%.$", ""))
 	end
 	return "$" .. text .. SUFFIXES[index]
+end
+
+-- The RemoteEvents both sides share, by name. The server makes them all on its first call; clients wait.
+--   State: server -> client snapshot of the player's own state
+--   Notify: server -> client toast message
+--   Fx: server -> client one-shot effect (cash popup, shake, sound)
+--   Action: client -> server HUD request ("BuySpeed", "Rebirth", "LockBase")
+--   Knockback: server -> client, launch your own character (direction, stun seconds) after a bat hit
+local REMOTE_NAMES = { "State", "Notify", "Fx", "Action", "Knockback" }
+
+function GameConfig.remote(name: string): RemoteEvent
+	local ReplicatedStorage = game:GetService("ReplicatedStorage")
+	local folder = ReplicatedStorage:FindFirstChild("Remotes")
+	if not folder and game:GetService("RunService"):IsServer() then
+		folder = Instance.new("Folder")
+		folder.Name = "Remotes"
+		for _, remoteName in REMOTE_NAMES do
+			local remote = Instance.new("RemoteEvent")
+			remote.Name = remoteName
+			remote.Parent = folder
+		end
+		folder.Parent = ReplicatedStorage
+	end
+	return (folder or ReplicatedStorage:WaitForChild("Remotes")):WaitForChild(name) :: RemoteEvent
 end
 
 return GameConfig

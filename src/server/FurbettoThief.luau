@@ -5,7 +5,7 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
-local Shared = game.ReplicatedStorage.Shared
+local Shared = game.ReplicatedStorage -- the shared modules sit right in it
 local BrainrotCatalog = require(Shared.BrainrotCatalog)
 local BrainrotModel = require(Shared.BrainrotModel)
 local GameConfig = require(Shared.GameConfig)
@@ -287,7 +287,9 @@ function FurbettoThief.raid(victim: Player)
 	end
 end
 
-local function pickVictim(): Player?
+-- A random player with at least one brainrot on their base, nil when nobody has any. The server
+-- script's sendThiefRaids picks each raid's victim with it.
+function FurbettoThief.pickVictim(): Player?
 	local candidates = {}
 	for _, player in Players:GetPlayers() do
 		local state = PlayerState.get(player)
@@ -296,21 +298,6 @@ local function pickVictim(): Player?
 		end
 	end
 	return if #candidates > 0 then candidates[rng:NextInteger(1, #candidates)] else nil
-end
-
-function FurbettoThief.start()
-	task.spawn(function()
-		task.wait(GameConfig.THIEF_FIRST_RAID)
-		while true do
-			local victim = pickVictim()
-			if victim then
-				FurbettoThief.raid(victim)
-				task.wait(GameConfig.THIEF_INTERVAL)
-			else
-				task.wait(5)
-			end
-		end
-	end)
 end
 
 return FurbettoThief

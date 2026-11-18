@@ -8,9 +8,7 @@
       }
     },
     "ReplicatedStorage": {
-      "Shared": {
-        "$path": "src/shared"
-      }
+      "$path": "src/shared"
     },
     "ServerScriptService": {
       "Server": {

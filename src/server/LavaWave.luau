@@ -5,10 +5,10 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
-local GameConfig = require(game.ReplicatedStorage.Shared.GameConfig)
+local GameConfig = require(game.ReplicatedStorage.GameConfig)
 local PlayerState = require(script.Parent.PlayerState)
 local WildSpawner = require(script.Parent.WildSpawner)
-local WorldBuilder = require(script.Parent.WorldBuilder)
+local ArenaBuilder = require(script.Parent.ArenaBuilder)
 
 local LavaWave = {}
 
@@ -80,7 +80,7 @@ local function sweepPlayers(frontZ: number)
 		end
 		local position = root.Position
 		local inWave = position.Z > 0 and math.abs(position.Z - frontZ) <= half and position.Y < GameConfig.WAVE_HEIGHT + 3
-		if inWave and not WorldBuilder.isInSafeDome(position) then
+		if inWave and not ArenaBuilder.isInSafeDome(position) then
 			humanoid.Health = 0
 			PlayerState.fx(player, "Wiped")
 		end
@@ -115,21 +115,22 @@ function LavaWave.surge(travelTime: number?)
 	wave.Parent = nil
 end
 
+-- The calm before a surge: publishes when the next wave hits (the HUD counts down to it), sounds the
+-- warning WAVE_WARNING seconds ahead and returns as the wave is due.
+function LavaWave.countDown()
+	local surgeAt = workspace:GetServerTimeNow() + GameConfig.WAVE_INTERVAL
+	workspace:SetAttribute("WavePhase", "calm")
+	workspace:SetAttribute("WaveAt", surgeAt)
+	task.wait(GameConfig.WAVE_INTERVAL - GameConfig.WAVE_WARNING)
+	workspace:SetAttribute("WavePhase", "warning")
+	PlayerState.fxAll("WaveWarning")
+	task.wait(math.max(surgeAt - workspace:GetServerTimeNow(), 0))
+end
+
+-- Builds the wave and parks it behind the volcano. The server script's sendLavaWaves runs the cycle.
 function LavaWave.start()
 	wave = buildWave()
 	placeWave(START_Z)
-	task.spawn(function()
-		while true do
-			local surgeAt = workspace:GetServerTimeNow() + GameConfig.WAVE_INTERVAL
-			workspace:SetAttribute("WavePhase", "calm")
-			workspace:SetAttribute("WaveAt", surgeAt)
-			task.wait(GameConfig.WAVE_INTERVAL - GameConfig.WAVE_WARNING)
-			workspace:SetAttribute("WavePhase", "warning")
-			PlayerState.fxAll("WaveWarning")
-			task.wait(math.max(surgeAt - workspace:GetServerTimeNow(), 0))
-			LavaWave.surge()
-		end
-	end)
 end
 
 return LavaWave

@@ -1,9 +1,9 @@
--- Climbing the ladder: speed upgrades, rebirths (reset for a permanent cash multiplier and more pads)
--- and the timed server events (Golden Hour, Cash Frenzy, Meteor Shower). Also routes HUD actions.
+-- Climbing the ladder: rebirths (reset for a permanent cash multiplier and more pads), speed upgrades
+-- and the timed server events (Golden Hour, Cash Frenzy, Meteor Shower). The server script routes the
+-- HUD's requests here and runs the event clock.
 
-local Shared = game.ReplicatedStorage.Shared
+local Shared = game.ReplicatedStorage -- the shared modules sit right in it
 local GameConfig = require(Shared.GameConfig)
-local Net = require(Shared.Net)
 local BaseSlots = require(script.Parent.BaseSlots)
 local CarryAndSteal = require(script.Parent.CarryAndSteal)
 local PlayerState = require(script.Parent.PlayerState)
@@ -102,28 +102,6 @@ function Progression.runEvent()
 	task.wait(GameConfig.EVENT_DURATION)
 	event.finish()
 	workspace:SetAttribute("EventName", nil)
-end
-
-function Progression.start()
-	Net.event("Action").OnServerEvent:Connect(function(player, action)
-		if not PlayerState.get(player) then
-			return
-		end
-		if action == "BuySpeed" then
-			Progression.buySpeed(player)
-		elseif action == "Rebirth" then
-			Progression.rebirth(player)
-		elseif action == "LockBase" then
-			CarryAndSteal.lockBase(player)
-		end
-	end)
-	task.spawn(function()
-		task.wait(GameConfig.EVENT_FIRST)
-		while true do
-			Progression.runEvent()
-			task.wait(GameConfig.EVENT_INTERVAL - GameConfig.EVENT_DURATION)
-		end
-	end)
 end
 
 return Progression

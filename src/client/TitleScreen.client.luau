@@ -5,7 +5,7 @@ local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
-local Shared = game.ReplicatedStorage:WaitForChild("Shared")
+local Shared = game:GetService("ReplicatedStorage") -- the shared modules sit right in it
 local BrainrotCatalog = require(Shared:WaitForChild("BrainrotCatalog"))
 local BrainrotModel = require(Shared:WaitForChild("BrainrotModel"))
 local GameConfig = require(Shared:WaitForChild("GameConfig"))

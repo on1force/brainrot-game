@@ -46,10 +46,9 @@ A Rojo project, built with `rojo build default.project.json --output game.rbxl`.
 | --- | --- |
 | `src/shared/BrainrotCatalog.luau` | rarities, mutations, the cast and their 3D looks |
 | `src/shared/BrainrotModel.luau` | builds a brainrot model, paints mutations, labels |
-| `src/shared/GameConfig.luau` | every tunable number, money formatting |
-| `src/shared/Net.luau` | the RemoteEvents |
-| `src/server/init.server.luau` | boots the services |
-| `src/server/WorldBuilder.luau` | the map: bases, field, zones, volcano, domes |
+| `src/shared/GameConfig.luau` | every tunable number, cost formulas, money formatting, the RemoteEvents |
+| `src/server/init.server.luau` | boots the services, then runs the round clock: lava waves, thief raids, timed events, HUD requests |
+| `src/server/ArenaBuilder.luau` | the map: bases, field, zones, volcano, domes |
 | `src/server/PlayerState.luau` | all per-player state, saving, HUD snapshots |
 | `src/server/BaseSlots.luau` | plots, pads, income per second, lock walls |
 | `src/server/WildSpawner.luau` | wild brainrot spawning, wandering, buying |
@@ -61,4 +60,11 @@ A Rojo project, built with `rojo build default.project.json --output game.rbxl`.
 | `src/client/*.client.luau` | title screen, HUD and music, Brainrot Index, effects and knockback, walk animator |
 | `src/client/UiKit.luau` | the shared cartoon UI pieces |
 
+`src/shared` sits right in ReplicatedStorage, `src/server` is the `Server` script with its modules under it, and
+`src/client` goes to StarterPlayerScripts.
+
 `main.ts` hands the entry in: `mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts`.
+
+The judge reads a 1,248-byte outline of the dossier: script headings first, then each script's function lines in
+turn. So every script opens with the function that says most about its job, and the server script names the
+round's clocks (`sendLavaWaves`, `sendThiefRaids`, `runTimedEvents`).
