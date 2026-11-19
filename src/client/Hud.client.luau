@@ -41,8 +41,21 @@ local rebirthLabel = UiKit.text(cashCard, "Rebirth 0  -  x1 cash", { Name = "Reb
 local padsLabel = UiKit.text(cashCard, "Base 0/8 brainrots", { Name = "Pads", Position = UDim2.fromOffset(16, 156),
 	Size = UDim2.new(1, -32, 0, 20), TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = UiKit.INK, outline = 0 })
 
--- Lava wave countdown (top center)
-local wavePanel = UiKit.panel(gui, { Name = "Wave", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 10),
+-- Feature tagline (top center): what the game holds, counted from the catalog
+local mutationCount = 0
+for _, mutation in BrainrotCatalog.MUTATIONS do
+	if mutation.id ~= "None" then
+		mutationCount += 1
+	end
+end
+local taglinePanel = UiKit.panel(gui, { Name = "Tagline", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 8),
+	Size = UDim2.fromOffset(780, 44) }, C.purple)
+UiKit.text(taglinePanel, ("%d BRAINROTS · %d RARITIES · %d MUTATIONS · STEAL · LOCK · REBIRTH"):format(#BrainrotCatalog.CAST,
+	#BrainrotCatalog.RARITIES, mutationCount), { Name = "Text", Font = UiKit.TITLE_FONT, Position = UDim2.fromOffset(12, 4),
+	Size = UDim2.new(1, -24, 1, -8), TextColor3 = Color3.fromRGB(255, 240, 120), outline = 2.5 })
+
+-- Lava wave countdown (top center, under the tagline)
+local wavePanel = UiKit.panel(gui, { Name = "Wave", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 60),
 	Size = UDim2.fromOffset(540, 76) }, C.lava)
 local waveGradient = wavePanel:FindFirstChildOfClass("UIGradient") :: UIGradient
 local waveLabel = UiKit.text(wavePanel, "🌋 LAVA WAVE IN 45s", { Name = "Text", Font = UiKit.TITLE_FONT,
@@ -61,7 +74,7 @@ UiKit.corner(waveBar, 7)
 waveBar.Parent = waveBarBack
 
 -- Event banner (under the wave panel)
-local eventPanel = UiKit.panel(gui, { Name = "Event", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 96),
+local eventPanel = UiKit.panel(gui, { Name = "Event", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 146),
 	Size = UDim2.fromOffset(540, 46) }, C.gold)
 local eventLabel = UiKit.text(eventPanel, "", { Name = "Text", Position = UDim2.fromOffset(12, 6), Size = UDim2.new(1, -24, 1, -12),
 	outline = 2.5 })
@@ -119,7 +132,7 @@ end, false, Enum.KeyCode.L)
 -- Toasts (right side): cream cards with a colored stripe, newest on top
 local toastColumn = Instance.new("Frame")
 toastColumn.AnchorPoint = Vector2.new(1, 0)
-toastColumn.Position = UDim2.new(1, -16, 0, 160)
+toastColumn.Position = UDim2.new(1, -16, 0, 210)
 toastColumn.Size = UDim2.fromOffset(400, 420)
 toastColumn.BackgroundTransparency = 1
 toastColumn.Parent = gui
@@ -166,7 +179,7 @@ end
 
 -- Zone banner (fades in when you cross into a zone)
 local zoneLabel = UiKit.text(gui, "", { Name = "Zone", Font = UiKit.TITLE_FONT, AnchorPoint = Vector2.new(0.5, 0),
-	Position = UDim2.new(0.5, 0, 0.22, 0), Size = UDim2.fromOffset(640, 58), outline = 4 })
+	Position = UDim2.new(0.5, 0, 0.27, 0), Size = UDim2.fromOffset(640, 58), outline = 4 })
 local zoneStroke = zoneLabel:FindFirstChildOfClass("UIStroke") :: UIStroke
 zoneLabel.TextTransparency = 1
 zoneStroke.Transparency = 1

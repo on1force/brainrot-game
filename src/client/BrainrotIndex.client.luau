@@ -30,7 +30,8 @@ local openButton = UiKit.button(gui, { title = "INDEX [B]", icon = "📖", color
 	size = UDim2.fromOffset(300, 54), position = UDim2.new(0, 16, 0.42, 104) })
 openButton.Name = "IndexButton"
 
-local panel = UiKit.panel(gui, { Name = "Panel", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.52),
+-- the book sits on the bottom edge, sized to clear the HUD's feature tagline at the top
+local panel = UiKit.panel(gui, { Name = "Panel", AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -6),
 	Size = UDim2.fromOffset(1010, 650), Visible = false })
 
 local banner = UiKit.panel(panel, { Name = "Banner", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0, 4),
@@ -132,7 +133,7 @@ ContextActionService:BindAction("BrainrotIndex", function(_, inputState)
 end, false, Enum.KeyCode.B)
 
 RunService.RenderStepped:Connect(function()
-	scale.Scale = math.clamp(workspace.CurrentCamera.ViewportSize.Y / 760, 0.55, 1.4)
+	scale.Scale = math.clamp((workspace.CurrentCamera.ViewportSize.Y - 140) / 680, 0.55, 1.4)
 	if panel.Visible then
 		-- portraits sway on their turntables; moving them also redraws any mesh that finished loading late
 		local t = os.clock()
